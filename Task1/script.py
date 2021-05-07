@@ -22,13 +22,10 @@ class Serializer(object):
                         <name>
                             'Имя студента'
                         </name>
-                        <name>
-                            'Имя студента'
-                        </name>
-                        ...
                     </student>
                     ...
                 </room>
+                ...
             </rooms>
         </data>"""
 
@@ -120,4 +117,4 @@ if __name__ == '__main__':
         else:
             print('Incorrect format. Print "xml" or "json".')
     except FileNotFoundError:
-        print('Выполнение скрипта прервано. Путь к файлу указан неправильно либо не указан совсем')
+        print('Incorrect path to file/files.')
