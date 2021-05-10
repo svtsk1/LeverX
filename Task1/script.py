@@ -6,85 +6,60 @@ import xml.etree.ElementTree as ET
 
 
 class Serializer(object):
-    """Аттрибутом класса является список студентов, который получается после объединения двух файлов.
-    Методы класса сериализуют полученный список либо в xml, либо в json и создают соответсвующий файл.
-    При необходимости добавления сериализации данных в другой формат можно легко добавить новый метод."""
+    """Аттрибутом класса является словарь со студентами, который получается после объединения двух файлов.
+    Методы класса сериализуют полученный список либо в xml, либо в json и создают соответсвующий файл."""
 
-    def __init__(self, students_list_to_serialize):
-        self.students_list_to_serialize = students_list_to_serialize
+    def __init__(self, students_dict_to_serialize):
+        self.students_dict_to_serialize = students_dict_to_serialize
 
     def create_xml(self):
         """В полученном xml будет следующая иерархия:
-        <data>
-            <rooms>
-                <room name='Номер комнаты'>
-                    <student id=''>
-                        <name>
-                            'Имя студента'
-                        </name>
-                    </student>
-                    ...
-                </room>
+        <rooms>
+            <room number="Room #0">
+                <student name="William Perez" />
                 ...
-            </rooms>
-        </data>"""
+            </room>
+            ...
+        </rooms>"""
 
-        data = ET.Element('data')
-        rooms = ET.SubElement(data, 'rooms')
+        rooms = ET.Element('rooms')
 
-        for room in self.students_list_to_serialize:
+        for room in self.students_dict_to_serialize:
             one_room = ET.SubElement(rooms, 'room')
-            one_room.set('name', f'{room[0]}')
+            one_room.set('number', f'{room}')
 
-            for student in room[1]:
+            for student in self.students_dict_to_serialize[room]:
                 one_student = ET.SubElement(one_room, 'student')
-                student_id = student['id']
-                student_name = student['name']
-                one_student.set('id', f'{student_id}')
-                name = ET.SubElement(one_student, 'name')
-                name.text = f'{student_name}'
+                one_student.set('name', f'{student}')
 
-        mydata = ET.tostring(data, encoding='unicode')
+        mydata = ET.tostring(rooms, encoding='unicode')
         with open('result.xml', 'w') as file:
             file.write(mydata)
 
     def create_json(self):
         """Полученный json будет иметь следующий вид:
-        [['Номер комнаты', [{*вся информация о студенте из исходного файла*}, {...}, ...]], ...]"""
+        {"Room #0": ["William Perez", ...], ...}"""
         with open('result.json', 'w') as file:
-            json.dump(self.students_list_to_serialize, file)
+            json.dump(self.students_dict_to_serialize, file)
 
 
-class MainLogic(object):
-    """Аттрибутами класса являются файл со студентами и файл с комнатами.
-    Здесь реализован один метод, который соединяет информацию из двух этих списков для последующей сериализации.
-    При необходимости класс можно легко расширить новыми действиями, которые нужно совершить над файлами."""
-    def __init__(self, file_with_students, file_with_rooms):
-        self.file_with_students = file_with_students
-        self.file_with_rooms = file_with_rooms
+def put_students_in_rooms(file_with_rooms, file_with_students):
+    """Возвращает словарь, который нужно сериализовывать.
+    Сначала из файла с комнатами выносятся все номера комнат.
+    Пары полученного словара представляют собой номер комнаты и пустые списки, куда будут заносится студенты.
+    Затем имена студентов из файла со студентами добавляются в соответствующие списки."""
+    dict_of_rooms_with_students = {}
+    with open(f"{file_with_rooms}", "r") as list_of_rooms:
+        list_of_rooms = json.load(list_of_rooms)
+        for i in range(len(list_of_rooms)):
+            room_number = list_of_rooms[i]['name']
+            dict_of_rooms_with_students[room_number] = []
 
-    def put_students_in_rooms(self):
-        """Соединяет информацию так, как того требует задание. Возвращает список, который нужно сериализовывать.
-        Сначала из файла с комнатами в отдельный список выносятся все номера комнат.
-        Полученный список состоит из кортежей, где первый элемент - Номер комнаты, второй элемент - пустой список,
-            куда в последствии будут добавляться студенты.
-        Затем, открыв файл со студентами и запустив цикл по полученному ранее списку, выбираем студентов,
-            у которых указанный номер комнаты совпадает с тем, на котором сейчас находится цикл, и добавляются в
-            соответствующий список.
-        Полученный список является конечным для данного алгоритма."""
-        list_of_rooms_with_students = []
-        with open(f"{self.file_with_rooms}", "r") as list_of_rooms:
-            data = json.load(list_of_rooms)
-            for i in range(len(data)):
-                list_of_rooms_with_students.append((data[i]['name'], []))
-
-        with open(f"{self.file_with_students}", "r") as list_of_students:
-            data = json.load(list_of_students)
-            for room in list_of_rooms_with_students:
-                room_number = int(room[0][6:])
-                students_in_this_room = list(filter(lambda student: student['room'] == room_number, data))
-                room[1].extend(students_in_this_room)
-        return list_of_rooms_with_students
+    with open(f"{file_with_students}", "r") as list_of_students:
+        list_of_students = json.load(list_of_students)
+        for student in list_of_students:
+            dict_of_rooms_with_students[f"Room #{student['room']}"].append(student['name'])
+    return dict_of_rooms_with_students
 
 
 def create_parser():
@@ -105,11 +80,9 @@ if __name__ == '__main__':
     json_with_students = args.students
     json_with_rooms = args.rooms
 
-    logic = MainLogic(json_with_students, json_with_rooms)
-
     try:
-        result_list = logic.put_students_in_rooms()
-        serializer = Serializer(result_list)
+        result_dict = put_students_in_rooms(json_with_rooms, json_with_students)
+        serializer = Serializer(result_dict)
         if args.format == 'xml':
             serializer.create_xml()
         elif args.format == 'json':
