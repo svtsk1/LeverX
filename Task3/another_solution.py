@@ -1,13 +1,15 @@
 from time import time
 from threading import Thread
 
-a = []
+a = 0
 
 
 def function(arg):
     global a
+    b = 0
     for _ in range(arg):
-        a.append(1)
+        b += 1
+    a += b
 
 
 def main():
@@ -20,7 +22,7 @@ def main():
 
     [t.join() for t in threads]
     time_finish = time()
-    print("----------------------", len(a), f'Время выполнения: {time_finish - time_start}')  # ???
+    print("----------------------", a, f'Время выполнения: {time_finish - time_start}')  # ???
 
 
 main()
