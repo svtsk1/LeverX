@@ -1,10 +1,7 @@
 from threading import Thread, Lock
 
-a = 0
 
-
-def function(arg, lock):
-    global a
+def function(arg, a, lock):
 
     lock.acquire()
     for _ in range(arg):
@@ -13,10 +10,11 @@ def function(arg, lock):
 
 
 def main():
+    a = 0
     lock = Lock()
     threads = []
     for i in range(5):
-        thread = Thread(target=function, args=(1000000, lock,))
+        thread = Thread(target=function, args=(1000000, a, lock,))
         thread.start()
         threads.append(thread)
 
