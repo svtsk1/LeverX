@@ -1,4 +1,5 @@
 from functools import total_ordering
+from itertools import zip_longest
 
 
 @total_ordering
@@ -18,8 +19,10 @@ class Version:
         Если появится необходимость сравнивать версии с другими буквенными обозначениями,
             то достаточно просто добавить новый метод .replace для них.
         Полученная версия представляет собой список из элементов, где каждый элемент - major, minor, patch и т.д."""
-        self.version = version.replace('alpha', '0').replace('beta', '1').replace('a', '-0')\
-            .replace('b', '-1').replace('rc', '2').replace('-', '.').split('.')
+        replacement_rules = {"alpha": '0', "beta": '1', "a": '-0', "b": '-1', "rc": '2', "-": '.'}
+        for key in replacement_rules.keys():
+            version = version.replace(key, str(replacement_rules[key]))
+        self.version = version.split('.')
 
     def __lt__(self, other):
         """Сравнивает попарно версии в цикле.
@@ -28,13 +31,14 @@ class Version:
         Если в паре числа равны друг-другу, то переходит к следующей паре.
         Если цикл прошёлся по всем получившимся парам, то сравниваются количество элементов в номере версий:
             Если в первой версии количество элементов меньше, то она меньше второй версии."""
-        couples = list(zip(self.version, other.version))
+        couples = zip_longest(self.version, other.version, fillvalue='0')
         for couple in couples:
-            if couple[0] < couple[1]:
+            first, second = couple[0], couple[1]
+            if first < second:
                 return True
-            if couple[0] > couple[1]:
+            if first > second:
                 return False
-            if couple[0] == couple[1]:
+            if first == second:
                 continue
         return True if len(self.version) < len(other.version) else False
 
@@ -44,11 +48,12 @@ class Version:
         Если в паре числа равны друг-другу, то переходит к следующей паре.
         Если цикл прошёлся по всем получившимся парам, то сравниваются количество элементов в номере версий:
             Если количество элементов в парах одинаково, то они равны друг-другу."""
-        couples = list(zip(self.version, other.version))
+        couples = zip_longest(self.version, other.version, fillvalue='0')
         for couple in couples:
-            if couple[0] < couple[1] or couple[0] > couple[1]:
+            first, second = couple[0], couple[1]
+            if first < second or first > second:
                 return False
-            if couple[0] == couple[1]:
+            if first == second:
                 continue
         return True if len(self.version) != len(other.version) else False
 
