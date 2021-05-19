@@ -3,10 +3,10 @@ from threading import Thread, Lock
 
 def function(arg, a, lock):
 
-    lock.acquire()
     for _ in range(arg):
+        lock.acquire()
         a += 1
-    lock.release()
+        lock.release()
 
 
 def main():

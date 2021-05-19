@@ -6,10 +6,10 @@ a = 0
 def function(arg, lock):
     global a
 
-    lock.acquire()
     for _ in range(arg):
+        lock.acquire()
         a += 1
-    lock.release()
+        lock.release()
 
 
 def main():
