@@ -21,7 +21,7 @@ class Version:
         Полученная версия представляет собой список из элементов, где каждый элемент - major, minor, patch и т.д."""
         replacement_rules = {"alpha": '0', "beta": '1', "a": '-0', "b": '-1', "rc": '2', "-": '.'}
         for key in replacement_rules.keys():
-            version = version.replace(key, str(replacement_rules[key]))
+            version = version.replace(key, replacement_rules[key])
         self.version = version.split('.')
 
     def __lt__(self, other):
@@ -60,24 +60,13 @@ def main():
         ("1.1.0-alpha", "1.2.0-alpha.1"),
         ("1.0.1b", "1.0.10-alpha.beta"),
         ("1.0.0-rc.1", "1.0.0"),
-
-        ('1.100.0', '1.5.2.7682'),
-        ('1.2-rc.3', "1.2.4"),
-        ('2.0.0', '2'),
-        ('9.5', '10.0'),
     ]
 
     for version_1, version_2 in to_test:
-        # assert Version(version_1) < Version(version_2), "lt failed"
-        # assert Version(version_2) > Version(version_1), "gt failed"
-        # assert Version(version_2) != Version(version_1), "neq failed"
-        # print(f"Couple {version_1, version_2} passed the tests.")
-        if Version(version_1) > Version(version_2):
-            print(f'{version_1} больше {version_2}')
-        elif Version(version_1) < Version(version_2):
-            print(f'{version_1} меньше {version_2}')
-        elif Version(version_1) == Version(version_2):
-            print(f'{version_1} равно {version_2}')
+        assert Version(version_1) < Version(version_2), "lt failed"
+        assert Version(version_2) > Version(version_1), "gt failed"
+        assert Version(version_2) != Version(version_1), "neq failed"
+        print(f"Couple {version_1, version_2} passed the tests.")
 
 
 if __name__ == "__main__":
