@@ -39,7 +39,6 @@ class Version:
                 return False
             if first == second:
                 continue
-        return True if len(self.version) < len(other.version) else False
 
     def __eq__(self, other):
         """Сравнивает попарно версии в цикле.
@@ -53,7 +52,6 @@ class Version:
                 return False
             if first == second:
                 continue
-        return True if len(self.version) != len(other.version) else False
 
 
 def main():
