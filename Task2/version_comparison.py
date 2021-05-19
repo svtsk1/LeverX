@@ -28,7 +28,8 @@ class Version:
         """Сравнивает попарно версии в цикле.
         Если в паре первое число меньше второго, то и весь номер версии меньше, соответственно возвращает True.
         Если в паре первое число больше второго, то и весь номер версии больше, соответственно возвращает False.
-        Если в паре числа равны друг-другу, то переходит к следующей паре."""
+        Если в паре числа равны друг-другу, то переходит к следующей паре.
+        Если все пары равны, то возвращает False."""
         couples = zip_longest(self.version, other.version, fillvalue='0')
         for first, second in couples:
             first, second = int(first), int(second)
@@ -38,11 +39,13 @@ class Version:
                 return False
             if first == second:
                 continue
+        return False
 
     def __eq__(self, other):
         """Сравнивает попарно версии в цикле.
         Если в паре первое число меньше или больше второго, то номера версий не равны, соответственно возвращает False.
-        Если в паре числа равны друг-другу, то переходит к следующей паре."""
+        Если в паре числа равны друг-другу, то переходит к следующей паре.
+        Если все пары равны, то возвращает True."""
         couples = zip_longest(self.version, other.version, fillvalue='0')
         for first, second in couples:
             first, second = int(first), int(second)
@@ -50,6 +53,7 @@ class Version:
                 return False
             if first == second:
                 continue
+        return True
 
 
 def main():
