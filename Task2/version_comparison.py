@@ -32,8 +32,7 @@ class Version:
         Если цикл прошёлся по всем получившимся парам, то сравниваются количество элементов в номере версий:
             Если в первой версии количество элементов меньше, то она меньше второй версии."""
         couples = zip_longest(self.version, other.version, fillvalue='0')
-        for couple in couples:
-            first, second = couple[0], couple[1]
+        for first, second in couples:
             if first < second:
                 return True
             if first > second:
@@ -49,8 +48,7 @@ class Version:
         Если цикл прошёлся по всем получившимся парам, то сравниваются количество элементов в номере версий:
             Если количество элементов в парах одинаково, то они равны друг-другу."""
         couples = zip_longest(self.version, other.version, fillvalue='0')
-        for couple in couples:
-            first, second = couple[0], couple[1]
+        for first, second in couples:
             if first < second or first > second:
                 return False
             if first == second:
