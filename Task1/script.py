@@ -50,8 +50,8 @@ class XMLSerializer(Serializer):
                 one_student = ET.SubElement(one_room, 'student')
                 one_student.set('name', f'{student}')
 
-        mydata = ET.tostring(rooms, encoding='unicode')
-        return mydata
+        xml_string = ET.tostring(rooms, encoding='unicode')
+        return xml_string
 
 
 def write_file(data, file_format):
