@@ -5,26 +5,30 @@ import json
 import xml.etree.ElementTree as ET
 
 
-class JSONSerializer(object):
-    """Аттрибутом класса является словарь со студентами, который получается после объединения двух файлов.
-    Метод класса сериализует полученный список в json и создаёт соответсвующий файл."""
-
+class Serializer(object):
+    """Аттрибутом класса является словарь, который получается после объединения двух файлов."""
     def __init__(self, students_dict_to_serialize):
         self.students_dict_to_serialize = students_dict_to_serialize
+
+
+class JSONSerializer(Serializer):
+    """Метод класса сериализует полученный список в json. Аттрибут - словарь, который нужно сериализовать."""
+
+    def __init__(self, students_dict_to_serialize):
+        super().__init__(students_dict_to_serialize)
 
     def create_json(self):
         """Полученный json будет иметь следующий вид:
-        {"Room #0": ["William Perez", ...], ...}"""
-        with open('result.json', 'w') as file:
-            json.dump(self.students_dict_to_serialize, file)
+        {"Room #0": ["William Perez",...], "Room #1": [...], ...}"""
+        json_string = json.dumps(self.students_dict_to_serialize)
+        return json_string
 
 
-class XMLSerializer(object):
-    """Аттрибутом класса является словарь со студентами, который получается после объединения двух файлов.
-       Метод класса сериализует полученный список в xml и создаёт соответсвующий файл."""
+class XMLSerializer(Serializer):
+    """Метод класса сериализует полученный список в xml. Аттрибут - словарь, который нужно сериализовать"""
 
     def __init__(self, students_dict_to_serialize):
-        self.students_dict_to_serialize = students_dict_to_serialize
+        super().__init__(students_dict_to_serialize)
 
     def create_xml(self):
         """В полученном xml будет следующая иерархия:
@@ -47,8 +51,12 @@ class XMLSerializer(object):
                 one_student.set('name', f'{student}')
 
         mydata = ET.tostring(rooms, encoding='unicode')
-        with open('result.xml', 'w') as file:
-            file.write(mydata)
+        return mydata
+
+
+def write_file(data, file_format):
+    with open(f'result.{file_format}', 'w') as file:
+        file.write(data)
 
 
 def put_students_in_rooms(room_list, student_list):
@@ -78,7 +86,7 @@ def create_parser():
     return parser
 
 
-if __name__ == '__main__':
+def main():
     my_parser = create_parser()
     args = my_parser.parse_args()
     list_of_students = json.load(args.students)
@@ -86,6 +94,11 @@ if __name__ == '__main__':
     result_dict = put_students_in_rooms(list_of_rooms, list_of_students)
 
     if args.format == 'xml':
-        XMLSerializer(result_dict).create_xml()
+        result_data = XMLSerializer(result_dict).create_xml()
     elif args.format == 'json':
-        JSONSerializer(result_dict).create_json()
+        result_data = JSONSerializer(result_dict).create_json()
+    write_file(result_data, args.format)
+
+
+if __name__ == '__main__':
+    main()
