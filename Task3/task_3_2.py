@@ -1,24 +1,30 @@
-from threading import Thread, Lock
+from threading import Thread, local
+import queue
+
+threadLocal = local()
 
 
-def function(arg, a, lock):
+def function(arg, result_queue):
+    threadLocal.value = 0
 
     for _ in range(arg):
-        lock.acquire()
-        a += 1
-        lock.release()
+        threadLocal.value += 1
+
+    result_queue.put(threadLocal.value)
 
 
 def main():
     a = 0
-    lock = Lock()
+    result_queue = queue.Queue()
     threads = []
     for i in range(5):
-        thread = Thread(target=function, args=(1000000, a, lock,))
+        thread = Thread(target=function, args=(1000000, result_queue))
         thread.start()
         threads.append(thread)
 
     [t.join() for t in threads]
+    while not result_queue.empty():
+        a += result_queue.get()
     print("----------------------", a)  # ???
 
 
