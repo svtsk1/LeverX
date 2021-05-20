@@ -55,6 +55,7 @@ class XMLSerializer(Serializer):
 
 
 def write_file(data, file_format):
+    """Создаёт итоговый файл и записывает туда сериализованные данные."""
     with open(f'result.{file_format}', 'w') as file:
         file.write(data)
 
