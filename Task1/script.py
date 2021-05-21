@@ -5,59 +5,16 @@ import json
 import xml.etree.ElementTree as ET
 
 
-class Serializer(object):
-    """Аттрибутом класса является словарь, который получается после объединения двух файлов."""
-    def __init__(self, students_dict_to_serialize):
-        self.students_dict_to_serialize = students_dict_to_serialize
-
-
-class JSONSerializer(Serializer):
-    """Метод класса сериализует полученный список в json. Аттрибут - словарь, который нужно сериализовать."""
-
-    def __init__(self, students_dict_to_serialize):
-        super().__init__(students_dict_to_serialize)
-
-    def create_json(self):
-        """Полученный json будет иметь следующий вид:
-        {"Room #0": ["William Perez",...], "Room #1": [...], ...}"""
-        json_string = json.dumps(self.students_dict_to_serialize)
-        return json_string
-
-
-class XMLSerializer(Serializer):
-    """Метод класса сериализует полученный список в xml. Аттрибут - словарь, который нужно сериализовать"""
-
-    def __init__(self, students_dict_to_serialize):
-        super().__init__(students_dict_to_serialize)
-
-    def create_xml(self):
-        """В полученном xml будет следующая иерархия:
-        <rooms>
-            <room number="Room #0">
-                <student name="William Perez" />
-                ...
-            </room>
-            ...
-        </rooms>"""
-
-        rooms = ET.Element('rooms')
-
-        for room in self.students_dict_to_serialize:
-            one_room = ET.SubElement(rooms, 'room')
-            one_room.set('number', f'{room}')
-
-            for student in self.students_dict_to_serialize[room]:
-                one_student = ET.SubElement(one_room, 'student')
-                one_student.set('name', f'{student}')
-
-        xml_string = ET.tostring(rooms, encoding='unicode')
-        return xml_string
-
-
-def write_file(data, file_format):
-    """Создаёт итоговый файл и записывает туда сериализованные данные."""
-    with open(f'result.{file_format}', 'w') as file:
-        file.write(data)
+def create_parser():
+    """Парсер, принимающий три аргумента:
+        -путь к файлу со студентами
+        -путь к файлу с комнатами
+        -формат сериализации(xml или json)"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--students', type=argparse.FileType('r'))
+    parser.add_argument('-r', '--rooms', type=argparse.FileType('r'))
+    parser.add_argument('-f', '--format', choices=['json', 'xml'])
+    return parser
 
 
 def put_students_in_rooms(room_list, student_list):
@@ -75,16 +32,65 @@ def put_students_in_rooms(room_list, student_list):
     return dict_of_rooms_with_students
 
 
-def create_parser():
-    """Парсер, принимающий три аргумента:
-        -путь к файлу со студентами
-        -путь к файлу с комнатами
-        -формат сериализации(xml или json)"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--students', type=argparse.FileType('r'))
-    parser.add_argument('-r', '--rooms', type=argparse.FileType('r'))
-    parser.add_argument('-f', '--format', choices=['json', 'xml'])
-    return parser
+def create_xml(data):
+    """В полученном xml будет следующая иерархия:
+    <rooms>
+        <room number="Room #0">
+            <student name="William Perez" />
+            ...
+        </room>
+        ...
+    </rooms>"""
+
+    rooms = ET.Element('rooms')
+
+    for room in data:
+        one_room = ET.SubElement(rooms, 'room')
+        one_room.set('number', f'{room}')
+
+        for student in data[room]:
+            one_student = ET.SubElement(one_room, 'student')
+            one_student.set('name', f'{student}')
+
+    xml_string = ET.tostring(rooms, encoding='unicode')
+    return xml_string
+
+
+def create_json(data):
+    """Полученный json будет иметь следующий вид:
+    {"Room #0": ["William Perez",...], "Room #1": [...], ...}"""
+    json_string = json.dumps(data)
+    return json_string
+
+
+class Serializer(object):
+    """Аттрибутоми класса является словарь, который получается после объединения двух файлов
+    и формат файла, который нужно создать."""
+    def __init__(self, students_dict_to_serialize, file_format):
+        self.students_dict_to_serialize = students_dict_to_serialize
+        self.format = file_format
+
+    def write_file(self):
+        with open(f'result.{self.format}', 'w') as file:
+            file.write(self.students_dict_to_serialize)
+
+
+class JSONSerializer(Serializer):
+    """Метод класса записывает сериализованные данные в файл .json.
+     Аттрибут - словарь, который нужно сериализовать."""
+
+    def write_file(self):
+        self.students_dict_to_serialize = create_json(self.students_dict_to_serialize)
+        super().write_file()
+
+
+class XMLSerializer(Serializer):
+    """Метод класса записывает сериализованные данные в файл .xml.
+    Аттрибут - словарь, который нужно сериализовать"""
+
+    def write_file(self):
+        self.students_dict_to_serialize = create_xml(self.students_dict_to_serialize)
+        super().write_file()
 
 
 def main():
@@ -95,10 +101,9 @@ def main():
     result_dict = put_students_in_rooms(list_of_rooms, list_of_students)
 
     if args.format == 'xml':
-        result_data = XMLSerializer(result_dict).create_xml()
+        XMLSerializer(result_dict, args.format).write_file()
     elif args.format == 'json':
-        result_data = JSONSerializer(result_dict).create_json()
-    write_file(result_data, args.format)
+        JSONSerializer(result_dict, args.format).write_file()
 
 
 if __name__ == '__main__':
