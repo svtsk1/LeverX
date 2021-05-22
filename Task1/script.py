@@ -3,6 +3,7 @@
 import argparse
 import json
 import xml.etree.ElementTree as ET
+from xml.dom.minidom import parseString
 
 
 def create_parser():
@@ -53,18 +54,19 @@ def create_xml(data):
             one_student.set('name', f'{student}')
 
     xml_string = ET.tostring(rooms, encoding='unicode')
-    return xml_string
+    xml_string = parseString(xml_string)
+    return xml_string.toprettyxml()
 
 
 def create_json(data):
     """Полученный json будет иметь следующий вид:
     {"Room #0": ["William Perez",...], "Room #1": [...], ...}"""
-    json_string = json.dumps(data)
+    json_string = json.dumps(data, indent=4)
     return json_string
 
 
 class Serializer(object):
-    """Аттрибутоми класса является словарь, который получается после объединения двух файлов
+    """Аттрибутами класса является словарь, который получается после объединения двух файлов
     и формат файла, который нужно создать."""
     def __init__(self, students_dict_to_serialize, file_format):
         self.students_dict_to_serialize = students_dict_to_serialize
